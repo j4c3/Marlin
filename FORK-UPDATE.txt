@@ -1,0 +1,11 @@
+# -- check if upstream added:
+git remote -v
+# -- if not added, run:
+git remote add upstream https://github.com/MarlinFirmware/Marlin.git
+# -- then run:
+git fetch upstream
+git merge upstream/2.0.x
+git push origin 2.0.x
+# -- update branches:
+# -- checkout branch and run:
+git merge --squash origin
