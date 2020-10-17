@@ -1,76 +1,33 @@
-# Marlin 3D Printer Firmware
+### Malyan M200 Build Instructions
 
-![GitHub](https://img.shields.io/github/license/marlinfirmware/marlin.svg)
-![GitHub contributors](https://img.shields.io/github/contributors/marlinfirmware/marlin.svg)
-![GitHub Release Date](https://img.shields.io/github/release-date/marlinfirmware/marlin.svg)
-[![Build Status](https://github.com/MarlinFirmware/Marlin/workflows/CI/badge.svg?branch=bugfix-2.0.x)](https://github.com/MarlinFirmware/Marlin/actions)
+Malyan M200 series firmware currently builds using the Arduino IDE. These instructions should
+guide you through the configuration and compilation.
 
-<img align="right" width=175 src="buildroot/share/pixmaps/logo/marlin-250.png" />
+1. Install the Arduino IDE from your favorite source (arduino.cc, windows store, app store)
+2. Launch the IDE to add the ST boards manager:
+   - Open the **Preferences** dialog.
+   - Add this link in the "*Additional Boards Managers URLs*" field:
+      https://github.com/stm32duino/BoardManagerFiles/raw/master/STM32/package_stm_index.json
+   - Select "**Show verbose ouptut during: compilation**."
+3. Select **Tools** > **Board** > **Boards Manager**.
+4. Type "Malyan" into the Search field.
+5. The only board listed will be "**STM32 Cores by STMicroelectronics**." Any version from 1.6.0 up is fine. Choose install. This will download many tools and packages, be patient.
+6. Open the **Tools** > **Board** submenu, scroll all the way down, and select **3D Printer Boards**.
+7. From the **Tools** menu, select a board part number:
+   - If you own a M200 V1 or early run (black V2), choose **Malyan M200 V1**.
+   - If you own a M200 V2 later run (white/black) or V3 (Pro), choose **Malyan M200 V2** (The V2 and V3 both share an STM32F070 MCU). Note that the V3 pinout is not complete (autolevel doesn't work as of this writing).
+8. From the **Tools** menu, choose **USB Support** > **CDC No Generic Serial**.
+9. Download the latest Marlin source (from the [bugfix-2.0.x](https://github.com/MarlinFirmware/Marlin/tree/bugfix-2.0.x) branch) and unzip it.
+10. Look in the `Marlin` subdirectory for the `Configuration.h` and `Configuration_adv.h` files. Replace these files with the configurations in the `config\examples\Malyan\M200` folder.
+11. If you have an early-run V2, the steps-per-mm are roughly half. Consult the [mpminipro.com wiki](https://mpminipro.com/) for the steps that apply to your unit. Modify `Configuration.h`.
+12. Inverting Axis. There's no pattern to axes will need to be inverted. The only way to know is to test your particular printer. If you *do* know, go ahead and invert the correct axes.
+13. Open the `Marlin/Marlin.ino` file in Arduino IDE.
+14. From the **Sketch** menu, select **File** > **Export Compiled Binary**.
+15. When compilation is done you've built the firmware. The next stage is to flash it to the board. To do this look for a line like this: `"path/to/bin/arm-none-eabi-objcopy" -O binary "/path/to/Marlin.ino.elf" "/path/to/Marlin.ino.bin"`
+  The file `Marlin.ino.bin` is your firmware binary. M200 (v1-3) and M300 printers require flashing via SD card. Use the SD card that came with the printer if possible. The bootloader is very picky about SD cards. Copy `Marlin.ino.bin` to your SD card under three names: `firmware.bin`, `update.bin`, and `fcupdate.flg`.
+16. Insert the SD card into your printer. Make sure the X and Y axes are centered in the middle of the bed. (When X and Y endstops are closed this signals a UI upgrade to the bootloader.)
+17. Power-cycle the printer. The first flash may take longer. Don't be surprised if the .99 version number doesn't show up until after the UI has launched the default screen.
+18. Remove the SD card and delete the `fcupdate.flg` file from the card to prevent an accidental re-flash.
+19. Test the endstops and homing directions, run M303 PID autotune, and verify all features are working correctly.
 
-Additional documentation can be found at the [Marlin Home Page](https://marlinfw.org/).
-Please test this firmware and let us know if it misbehaves in any way. Volunteers are standing by!
-
-## Marlin 2.0
-
-Marlin 2.0 takes this popular RepRap firmware to the next level by adding support for much faster 32-bit and ARM-based boards while improving support for 8-bit AVR boards. Read about Marlin's decision to use a "Hardware Abstraction Layer" below.
-
-Download earlier versions of Marlin on the [Releases page](https://github.com/MarlinFirmware/Marlin/releases).
-
-## Building Marlin 2.0
-
-To build Marlin 2.0 you'll need [Arduino IDE 1.8.8 or newer](https://www.arduino.cc/en/main/software) or [PlatformIO](http://docs.platformio.org/en/latest/ide.html#platformio-ide). Detailed build and install instructions are posted at:
-
-  - [Installing Marlin (Arduino)](http://marlinfw.org/docs/basics/install_arduino.html)
-  - [Installing Marlin (VSCode)](http://marlinfw.org/docs/basics/install_platformio_vscode.html).
-
-### Supported Platforms
-
-  Platform|MCU|Example Boards
-  --------|---|-------
-  [Arduino AVR](https://www.arduino.cc/)|ATmega|RAMPS, Melzi, RAMBo
-  [Teensy++ 2.0](http://www.microchip.com/wwwproducts/en/AT90USB1286)|AT90USB1286|Printrboard
-  [Arduino Due](https://www.arduino.cc/en/Guide/ArduinoDue)|SAM3X8E|RAMPS-FD, RADDS, RAMPS4DUE
-  [LPC1768](http://www.nxp.com/products/microcontrollers-and-processors/arm-based-processors-and-mcus/lpc-cortex-m-mcus/lpc1700-cortex-m3/512kb-flash-64kb-sram-ethernet-usb-lqfp100-package:LPC1768FBD100)|ARM® Cortex-M3|MKS SBASE, Re-ARM, Selena Compact
-  [LPC1769](https://www.nxp.com/products/processors-and-microcontrollers/arm-microcontrollers/general-purpose-mcus/lpc1700-cortex-m3/512kb-flash-64kb-sram-ethernet-usb-lqfp100-package:LPC1769FBD100)|ARM® Cortex-M3|Smoothieboard, Azteeg X5 mini, TH3D EZBoard
-  [STM32F103](https://www.st.com/en/microcontrollers-microprocessors/stm32f103.html)|ARM® Cortex-M3|Malyan M200, GTM32 Pro, MKS Robin, BTT SKR Mini
-  [STM32F401](https://www.st.com/en/microcontrollers-microprocessors/stm32f401.html)|ARM® Cortex-M4|ARMED, Rumba32, SKR Pro, Lerdge, FYSETC S6
-  [STM32F7x6](https://www.st.com/en/microcontrollers-microprocessors/stm32f7x6.html)|ARM® Cortex-M7|The Borg, RemRam V1
-  [SAMD51P20A](https://www.adafruit.com/product/4064)|ARM® Cortex-M4|Adafruit Grand Central M4
-  [Teensy 3.5](https://www.pjrc.com/store/teensy35.html)|ARM® Cortex-M4|
-  [Teensy 3.6](https://www.pjrc.com/store/teensy36.html)|ARM® Cortex-M4|
-  [Teensy 4.0](https://www.pjrc.com/store/teensy40.html)|ARM® Cortex-M7|
-  [Teensy 4.1](https://www.pjrc.com/store/teensy41.html)|ARM® Cortex-M7|
-
-## Submitting Changes
-
-- Submit **Bug Fixes** as Pull Requests to the ([bugfix-2.0.x](https://github.com/MarlinFirmware/Marlin/tree/bugfix-2.0.x)) branch.
-- Follow the [Coding Standards](http://marlinfw.org/docs/development/coding_standards.html) to gain points with the maintainers.
-- Please submit your questions and concerns to the [Issue Queue](https://github.com/MarlinFirmware/Marlin/issues).
-
-## Marlin Support
-
-For best results getting help with configuration and troubleshooting, please use the following resources:
-
-- [Marlin Documentation](http://marlinfw.org) - Official Marlin documentation
-- [Marlin Discord](https://discord.gg/n5NJ59y) - Discuss issues with Marlin users and developers
-- Facebook Group ["Marlin Firmware"](https://www.facebook.com/groups/1049718498464482/)
-- RepRap.org [Marlin Forum](http://forums.reprap.org/list.php?415)
-- [Tom's 3D Forums](https://forum.toms3d.org/)
-- Facebook Group ["Marlin Firmware for 3D Printers"](https://www.facebook.com/groups/3Dtechtalk/)
-- [Marlin Configuration](https://www.youtube.com/results?search_query=marlin+configuration) on YouTube
-
-## Credits
-
-The current Marlin dev team consists of:
-
- - Scott Lahteine [[@thinkyhead](https://github.com/thinkyhead)] - USA &nbsp; [Donate](http://www.thinkyhead.com/donate-to-marlin)
- - Roxanne Neufeld [[@Roxy-3D](https://github.com/Roxy-3D)] - USA
- - Chris Pepper [[@p3p](https://github.com/p3p)] - UK
- - Bob Kuhn [[@Bob-the-Kuhn](https://github.com/Bob-the-Kuhn)] - USA
- - Erik van der Zalm [[@ErikZalm](https://github.com/ErikZalm)] - Netherlands &nbsp; [![Flattr Erik](https://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=ErikZalm&url=https://github.com/MarlinFirmware/Marlin&title=Marlin&language=&tags=github&category=software)
-
-## License
-
-Marlin is published under the [GPL license](/LICENSE) because we believe in open development. The GPL comes with both rights and obligations. Whether you use Marlin firmware as the driver for your open or closed-source product, you must keep Marlin open, and you must provide your compatible Marlin source code to end users upon request. The most straightforward way to comply with the Marlin license is to make a fork of Marlin on Github, perform your modifications, and direct users to your modified fork.
-
-While we can't prevent the use of this code in products (3D printers, CNC, etc.) that are closed source or crippled by a patent, we would prefer that you choose another firmware or, better yet, make your own.
+Welcome to Marlin 2.x...
